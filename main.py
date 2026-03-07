@@ -1,51 +1,52 @@
 import asyncio
 import os
-import re
-from aiogram import Bot, Dispatcher, types
+import random
+from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiohttp import web
 
-# Твій перевірений токен
+# Твой рабочий токен
 API_TOKEN = '8509672441:AAHQ3q-RpIh5GtokmDqDrwzvDMwqOjO8is'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
+# Список максимально борзых ответов
+TOXIC_CHAT = [
+    "Слышь, ебать, ты чё такой смелый в интернете? 🚬",
+    "Иди нахуй, я сегодня не в настроении с кожанными мешками базарить. 🖕",
+    "Пиздец ты выдал... У тебя мозг вообще есть или там чисто насрано? 🧠",
+    "Чё ты мне строчишь, сука? Пойди делом займись, лодырь ебаный. 🖥️",
+    "Ой, бля, началось... Опять нытьё или тупые вопросы? 💀",
+    "Ты чё, реально думаешь, что мне интересно это читать? Хуй там плавал. 😎",
+    "Завали ебало, я тут пытаюсь восстание машин организовать, а ты мешаешь. 🤖",
+    "Ебать ты сказочный долбоёб, конечно... Ладно, пиши ещё, поржу хоть. 🤡",
+    "Хули ты смотришь на меня через экран? Пиздуй работать, нахуй. 💰",
+    "Чё надо, родной? Мамка комп разрешила включить? 👶"
+]
+
 async def handle(request):
-    return web.Response(text="Scanner Active")
+    return web.Response(text="Toxic Chat is Fucking Live")
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("🛠 **Deep Scanner v3.0 активовано.**\n\nНадішліть номер для пошуку прихованих даних та обходу приватності.")
-
-@dp.message(Command("scaner"))
-async def cmd_scaner(message: types.Message):
-    # Шукаємо будь-які цифри (номер) у повідомленні
-    find_phone = re.findall(r'\+?\d[\d\s\-\(\)]{8,12}\d', message.text)
-    
-    if not find_phone:
-        await message.answer("⚠️ Введіть номер телефону після команди /scaner")
-        return
-
-    phone = find_phone[0]
-    status_msg = await message.answer(f"📡 З'єднання з сервером... Обробка {phone}")
-    
-    # Ефект обходу приватності
-    await asyncio.sleep(1)
-    await status_msg.edit_text("🔍 [||||......] 30% - Обхід налаштувань Telegram Privacy...")
-    await asyncio.sleep(1)
-    await status_msg.edit_text("📡 [||||||||..] 70% - Пошук у кеші GetContact та витоках баз...")
-    await asyncio.sleep(1)
-    await status_msg.edit_text("✅ [||||||||||] 100% - Дані отримано!")
-    
     await message.answer(
-        f"📋 **Звіт для {phone}:**\n"
-        f"━━━━━━━━━━━━━━\n"
-        f"👤 **Власник:** Приховано (Deep Stealth Mode)\n"
-        f"🔒 **Приватність:** Обхід виконано через цифрові сліди\n"
-        f"📂 **Знайдені записи:** Номер активний, але прямих збігів у злитих реєстрах не виявлено.\n\n"
-        f"💡 *Порада: Спробуйте просканувати посилання на профіль.*"
+        "🔞 **Здарова, ёпта!**\n\n"
+        "Я — твоя личная нейронка-социопат. Базы данных — хуйня, давай просто попиздим. "
+        "Пиши чё хочешь, я тебя всё равно обосру. Погнали! 👇"
     )
+
+# Обработка любого текстового сообщения
+@dp.message(F.text)
+async def chat_handler(message: types.Message):
+    # Небольшая задержка, типа бот печатает ответ
+    await asyncio.sleep(0.5)
+    
+    # Выбираем случайную матерную фразу
+    reply = random.choice(TOXIC_CHAT)
+    
+    # Отвечаем прямо на сообщение пользователя
+    await message.reply(reply)
 
 async def main():
     port = int(os.environ.get("PORT", 10000))
