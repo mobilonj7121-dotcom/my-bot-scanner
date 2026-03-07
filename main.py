@@ -1,121 +1,118 @@
 import asyncio
-import os
 import random
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 
-# Твій токен (переконайся, що він правильний)
+# Твій токен
 API_TOKEN = '8509672441:AAHQ3q-RpIh5Gt9okmDqDrwzvDMwqOjO8is'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# База даних у пам'яті (скидається при перезапуску сервера)
+# База даних у пам'яті (скидається при перезапуску Render)
 db = {
     "balance": 0.0,
-    "gpu_level": 1,
+    "level": 1,
     "xp": 0,
-    "hacks_done": 0,
-    "is_mining": False,
-    "coin": "XMR"
+    "hacks": 0,
+    "mining": False,
+    "rank": "Новачок 🐣"
 }
 
+def update_rank():
+    if db["level"] >= 50: db["rank"] = "GOD MODE ⚡"
+    elif db["level"] >= 20: db["rank"] = "Елітний Хакер 💀"
+    elif db["level"] >= 10: db["rank"] = "Спеціаліст 🖥️"
+    elif db["level"] >= 5: db["rank"] = "Просунутий 🔍"
+
 @dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer(
-        "🚀 **SYSTEM BOOTED: HACKER OS v11.0**\n"
-        "━━━━━━━━━━━━━━\n"
-        "Вітаю у терміналі. Твій поточний рівень: **" + str(db["gpu_level"]) + "**\n\n"
-        "💻 **ОСНОВНІ КОМАНДИ:**\n"
-        "┣ `/mine` — Почати видобуток крипти\n"
-        "┣ `/hack` — Спробувати зламати сервер\n"
-        "┣ `/upgrade` — Покращити залізо (ціна: " + f"{(db['gpu_level'] * 0.01):.3f}" + ")\n"
-        "┣ `/wallet` — Баланс та статистика\n"
-        "┣ `/status` — Технічний стан системи\n"
-        "┗ `/info` — Довідка по командам\n"
-        "━━━━━━━━━━━━━━\n"
-        "Чекаю на ввід даних..."
+async def cmd_start(m: types.Message):
+    update_rank()
+    await m.answer(
+        f"🖥 **TERMINAL OS v12.0**\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"👤 Користувач: {m.from_user.first_name}\n"
+        f"🏆 Ранг: {db['rank']}\n"
+        f"⚙️ Рівень заліза: {db['level']}\n"
+        f"💰 Баланс: {db['balance']:.6f} XMR\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"🕹 **КОМАНДИ:**\n"
+        f"┣ `/mine` — Майнінг (заробіток)\n"
+        f"┣ `/hack` — Злам (ризик/великий дохід)\n"
+        f"┣ `/upgrade` — Качати залізо (ціна: {(db['level']*0.01):.3f})\n"
+        f"┣ `/wallet` — Гаманець та XP\n"
+        f"┗ `/status` — Дані системи"
     )
 
 @dp.message(Command("mine"))
-async def cmd_mine(message: types.Message):
-    if db["is_mining"]:
-        await message.reply("⚠️ **ERROR:** Mining thread is busy. Wait for completion.")
-        return
+async def cmd_mine(m: types.Message):
+    if db["mining"]: return
+    db["mining"] = True
+    st = await m.answer("🔌 **Підключення до пулу...**")
     
-    db["is_mining"] = True
-    status = await message.answer("🛠 **INITIALIZING HASHING...**")
-    
-    for i in range(5):
-        # Дохід залежить від рівня GPU
-        profit = (random.uniform(0.0002, 0.0006)) * db["gpu_level"]
+    for i in range(6):
+        profit = (random.uniform(0.0003, 0.0008)) * db["level"]
         db["balance"] += profit
-        db["xp"] += 10
-        
-        progress = "■" * (i + 1) + "□" * (4 - i)
-        await status.edit_text(
-            f"⛏ **MINING IN PROGRESS**\n"
-            f"`[{progress}]` {20*(i+1)}%\n"
-            f"💰 Profit: +{profit:.6f} {db['coin']}\n"
-            f"📊 Power: {db['gpu_level'] * 120} MH/s"
-        )
+        db["xp"] += 5
+        bar = "■" * (i + 1) + "□" * (5 - i)
+        await st.edit_text(f"⛏ **MINING ACTIVE**\n`[{bar}]` {16*(i+1)}%\n💎 Дохід: +{profit:.6f} XMR")
         await asyncio.sleep(2.5)
     
-    db["is_mining"] = False
-    await message.answer("✅ **BLOCK MINED.** Кошти зараховано.")
+    db["mining"] = False
+    update_rank()
+    await m.answer("✅ Блок знайдено. Транзакція підтверджена.")
 
 @dp.message(Command("hack"))
-async def cmd_hack(message: types.Message):
-    targets = ["Apple_Mainframe", "FBI_Database", "Crypto_Exchange", "Social_Network"]
-    target = random.choice(targets)
-    msg = await message.answer(f"📡 **ATTACKING:** `{target}`...")
-    await asyncio.sleep(2)
+async def cmd_hack(m: types.Message):
+    targets = [
+        {"n": "🏦 Приватний банк", "p": 0.6, "l": 0.005},
+        {"n": "🛰️ Сервер НАСА", "p": 0.4, "l": 0.015},
+        {"n": "💎 Біржа Binance", "p": 0.2, "l": 0.05}
+    ]
+    t = random.choice(targets)
+    msg = await m.answer(f"📡 **АТАКА НА:** {t['n']}...")
+    await asyncio.sleep(3)
     
-    # 50% шанс успіху
-    if random.random() > 0.5:
-        loot = random.uniform(0.002, 0.01)
-        db["balance"] += loot
-        db["hacks_done"] += 1
-        db["xp"] += 40
-        await msg.edit_text(f"💀 **SUCCESS!** {target} зламано.\n💎 Здобич: {loot:.5f} XMR\n🌟 XP: +40")
+    if random.random() < t['p']:
+        db["balance"] += t['l']
+        db["hacks"] += 1
+        db["xp"] += 50
+        await msg.edit_text(f"💀 **SUCCESS!** {t['n']} зламано!\n💰 Здобич: {t['l']:.5f} XMR\n🌟 XP: +50")
     else:
-        await msg.edit_text(f"🚨 **FAILURE!** Тебе вирахували по IP. З'єднання скинуто.")
+        await msg.edit_text(f"🚨 **ALARM!** Системи безпеки {t['n']} заблокували атаку.")
 
 @dp.message(Command("upgrade"))
-async def cmd_upgrade(message: types.Message):
-    cost = db["gpu_level"] * 0.01
+async def cmd_up(m: types.Message):
+    cost = db["level"] * 0.01
     if db["balance"] >= cost:
         db["balance"] -= cost
-        db["gpu_level"] += 1
-        await message.answer(f"🔥 **HARDWARE UPGRADED!** Рівень CPU/GPU тепер: **{db['gpu_level']}**")
+        db["level"] += 1
+        update_rank()
+        await m.answer(f"🔥 **UPGRADE!** Рівень заліза підвищено до {db['level']}.\nШвидкість майнінгу зросла!")
     else:
-        await message.answer(f"❌ **NOT ENOUGH FUNDS.** Потрібно: {cost:.4f} XMR")
+        await m.answer(f"❌ Недостатньо XMR. Треба: {cost:.3f}")
 
 @dp.message(Command("wallet"))
-async def cmd_wallet(message: types.Message):
-    await message.answer(
+async def cmd_wallet(m: types.Message):
+    await m.answer(
         f"💳 **CENTRAL WALLET**\n"
         f"━━━━━━━━━━━━━━\n"
-        f"💰 Баланс: {db['balance']:.6f} {db['coin']}\n"
-        f"💵 USD: ${(db['balance'] * 164.5):.2f}\n"
+        f"💰 Баланс: {db['balance']:.6f} XMR\n"
+        f"💵 У доларах: ${(db['balance'] * 168):.2f}\n"
         f"🌟 Досвід: {db['xp']} XP\n"
-        f"🏴‍☠️ Вдалих зламів: {db['hacks_done']}"
+        f"🏴‍☠️ Вдалих атак: {db['hacks']}"
     )
 
 @dp.message(Command("status"))
-async def cmd_status(message: types.Message):
-    await message.answer(
-        f"🖥 **OS MONITOR**\n"
+async def cmd_status(m: types.Message):
+    await m.answer(
+        f"📊 **SYSTEM DIAGNOSTICS**\n"
         f"━━━━━━━━━━━━━━\n"
-        f"⚙️ Level: {db['gpu_level']}\n"
-        f"🌡 Temp: {random.randint(40, 68)}°C\n"
-        f"🌪 Fans: {random.randint(1500, 4000)} RPM\n"
-        f"📡 Connection: Encrypted (AES-256)"
+        f"🌡 Температура: {random.randint(45, 70)}°C\n"
+        f"🌪 Оберти кулерів: {random.randint(2800, 5000)} RPM\n"
+        f"🛰 Провідний сервер: Frankfurt-DE\n"
+        f"🛡 Захист: Активний"
     )
-
-@dp.message(Command("info"))
-async def cmd_info(message: types.Message):
-    await message.answer("🆘 **ДОПОМОГА:**\nЗаробляй крипту через `/mine` або `/hack`. Витрачай її в `/upgrade`, щоб заробляти ще швидше. Твоя мета — стати хакером 100 рівня!")
 
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
