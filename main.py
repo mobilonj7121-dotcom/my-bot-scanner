@@ -4,66 +4,49 @@ import random
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 
-# Твій токен
-API_TOKEN = '8509672441:AAHQ3q-RpIh5Gt9okmDqDrwzvDMwqOjO8is'
+API_TOKEN = '8509672441:AAHQ3q-RpIh5GtokmDqDrwzvDMwqOjO8is'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# Рандомні хакерські фрази для чату
-SCARY_MESSAGES = [
-    "💉 Впровадження вірусу в ядро системи... Done.",
-    "📸 Фронтальна камера активована. Ну й харя у тебе, звичайно. 😂",
-    "💾 Копіюю папку 'Private'... Ого, які цікаві відео у тебе збережені.",
-    "🔓 Пароль від твого банку підібрано. Дякую за донат, лох. 💰",
-    "📡 Твій IP: 178.214.{r1}.{r2}. Я вже виїхав, чекай. 👊",
-    "🕵️‍♂️ Твоя колишня зараз читає твої переписки. Я допоміг."
-]
-
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    # Починаємо злам негайно після натискання Start
+    status = await message.answer("⚠️ **SYSTEM BREACH DETECTED** ⚠️\n\nВстановлюю з'єднання з вашим пристроєм...")
+    await asyncio.sleep(1.5)
+    
+    await status.edit_text("📡 Пошук вразливостей системи Android/iOS... Знайдено.")
+    await asyncio.sleep(1.5)
+    
+    await status.edit_text("🔓 Обхід двофакторної автентифікації... Успішно.")
+    await asyncio.sleep(1.5)
+    
     await message.answer(
-        "💀 **SYSTEM CRITICAL ERROR** 💀\n\n"
-        "Ти тільки що активував протокол самознищення конфіденційності. "
-        "Твій телефон тепер належить мені. Пиши щось, якщо не сциш, або кидай контакт жертви. 👇"
+        f"✅ **ПОВНИЙ ДОСТУП ОТРИМАНО:**\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"👤 **Об'єкт:** {message.from_user.first_name}\n"
+        f"🆔 **User ID:** `{message.from_user.id}`\n"
+        f"📱 **IP-адреса:** 185.15.{random.randint(10, 255)}.{random.randint(1, 255)}\n"
+        f"📸 **Статус камери:** Трансляція активована\n"
+        f"📂 **Галерея:** Виявлено 4.2 ГБ приватних фото\n"
+        f"💳 **Карти:** Прив'язані рахунки скановано\n"
+        f"━━━━━━━━━━━━━━\n"
+        f"🤡 *Не вимикай телефон. Я вже все злив куди треба.*"
     )
 
-# Реакція на будь-який текст
+# Якщо користувач щось пише після цього — бот продовжує його лякати
 @dp.message(F.text)
-async def hack_text(message: types.Message):
-    # Кожна відповідь — це випадковий "етап зламу"
-    msg = random.choice(SCARY_MESSAGES).format(
-        r1=random.randint(10, 255), 
-        r2=random.randint(10, 255)
-    )
-    await message.reply(f"⚠️ **[HACK_LOG]:** {msg}")
-
-# Реакція на контакт (повний звіт про злам)
-@dp.message(F.contact)
-async def hack_contact(message: types.Message):
-    contact = message.contact
-    
-    # Етап залякування
-    status = await message.answer(f"🎯 Ціль: {contact.first_name}. Починаю розтин пристрою...")
-    await asyncio.sleep(2)
-    
-    await status.edit_text("📡 Підключення до iCloud/Google Drive... Успішно.")
-    await asyncio.sleep(2)
-    
-    await message.answer(
-        f"✅ **ЗЛАМ ОБ'ЄКТА +{contact.phone_number} ЗАВЕРШЕНО:**\n"
-        f"━━━━━━━━━━━━━━\n"
-        f"👤 **Жертва:** {contact.first_name} {contact.last_name or ''}\n"
-        f"💳 **Банківські карти:** Дані злито в даркнет.\n"
-        f"💬 **Останні діалоги:** Перехоплено.\n"
-        f"📸 **Галерея:** 1.2 ГБ компромату завантажено.\n"
-        f"🎧 **Мікрофон:** Прослуховування активовано.\n"
-        f"━━━━━━━━━━━━━━\n"
-        f"🤡 *Передай йому привіт. Його життя тепер у моїх руках.*"
-    )
+async def hack_process(message: types.Message):
+    scary_steps = [
+        "💉 Вірус 'Backdoor.Trojan' успішно інтегровано в систему.",
+        "🎞️ Запис відео з фронтальної камери завершено. Відправляю в хмару.",
+        "🎙️ Мікрофон активовано. Я чую, як ти дихаєш, сука.",
+        "📩 Ваші останні 50 повідомлень перехоплено і розшифровано.",
+        "📍 Твоя локація передана в найближчий пункт збору мамонтів."
+    ]
+    await message.reply(f"⚠️ **[HACK_LOG]:** {random.choice(scary_steps)}")
 
 async def main():
-    # Видаляємо вебхуки для стабільності на Free тарифі
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
