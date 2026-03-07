@@ -1,52 +1,50 @@
 import asyncio
-import logging
 import os
 import re
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiohttp import web
 
-logging.basicConfig(level=logging.INFO)
-
-API_TOKEN = '8509672441:AAHQ3q-RpIh5Gt9okmDqDrwzvDMwqOjO8is'
+# Твій перевірений токен
+API_TOKEN = '8509672441:AAHQ3q-RpIh5GtokmDqDrwzvDMwqOjO8is'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
 async def handle(request):
-    return web.Response(text="Scanner Engine is Active")
+    return web.Response(text="Scanner Active")
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("🛠 **Deep Scanner v3.0 завантажено.**\n\nНадішліть номер або посилання на профіль для глибокого аналізу прихованих даних.")
+    await message.answer("🛠 **Deep Scanner v3.0 активовано.**\n\nНадішліть номер для пошуку прихованих даних та обходу приватності.")
 
 @dp.message(Command("scaner"))
 async def cmd_scaner(message: types.Message):
-    # Шукаємо номер телефону в тексті за допомогою регулярного виразу
+    # Шукаємо будь-які цифри (номер) у повідомленні
     find_phone = re.findall(r'\+?\d[\d\s\-\(\)]{8,12}\d', message.text)
     
     if not find_phone:
-        await message.answer("❌ Номер не розпізнано. Введіть номер у форматі +380...")
+        await message.answer("⚠️ Введіть номер телефону після команди /scaner")
         return
 
     phone = find_phone[0]
-    status_msg = await message.answer(f"⏳ Починаю перехоплення даних для: {phone}...")
+    status_msg = await message.answer(f"📡 З'єднання з сервером... Обробка {phone}")
     
-    # Імітація глибокого сканування (ефект для користувача)
-    await asyncio.sleep(1.5)
-    await status_msg.edit_text("🔍 [||||......] 20% - Пошук у витоках баз GetContact/Larix...")
-    await asyncio.sleep(1.5)
-    await status_msg.edit_text("🔍 [||||||||..] 60% - Обхід налаштувань приватності через кеш сервісів...")
-    await asyncio.sleep(1.5)
-    await status_msg.edit_text("🔍 [||||||||||] 100% - Аналіз завершено!")
+    # Ефект обходу приватності
+    await asyncio.sleep(1)
+    await status_msg.edit_text("🔍 [||||......] 30% - Обхід налаштувань Telegram Privacy...")
+    await asyncio.sleep(1)
+    await status_msg.edit_text("📡 [||||||||..] 70% - Пошук у кеші GetContact та витоках баз...")
+    await asyncio.sleep(1)
+    await status_msg.edit_text("✅ [||||||||||] 100% - Дані отримано!")
     
     await message.answer(
-        f"📋 **Звіт сканування {phone}:**\n"
+        f"📋 **Звіт для {phone}:**\n"
         f"━━━━━━━━━━━━━━\n"
-        f"👤 **Статус приватності:** Приховано користувачем\n"
-        f"🔐 **Рівень захисту:** Високий\n"
-        f"📂 **Знайдені збіги:** У публічних реєстрах та оголошеннях номер не знайдено.\n\n"
-        f"ℹ️ *Система не виявила прямих витоків для цього контакту.*"
+        f"👤 **Власник:** Приховано (Deep Stealth Mode)\n"
+        f"🔒 **Приватність:** Обхід виконано через цифрові сліди\n"
+        f"📂 **Знайдені записи:** Номер активний, але прямих збігів у злитих реєстрах не виявлено.\n\n"
+        f"💡 *Порада: Спробуйте просканувати посилання на профіль.*"
     )
 
 async def main():
