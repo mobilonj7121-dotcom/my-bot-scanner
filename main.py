@@ -3,25 +3,20 @@ import random
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 
-# Твій унікальний токен
 API_TOKEN = '8560393413:AAFlrX__ZmtosyREdfN0cjDr6MIeF5xPUuY'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# Глобальна база всіх гравців
 db = {}
 
 async def update_bot_bio():
-    """Автоматично оновлює опис бота в Telegram (цифри, які бачать усі)"""
     count = len(db)
     try:
-        # Текст перед стартом бота
         await bot.set_my_short_description(f"🔥 Найкраща хакерська ферма! Гравців у грі: {count}. Тисни /start")
-        # Текст у профілі бота (Bio)
         await bot.set_my_description(f"💻 TERMINAL OS v20.0\n👥 Хакерів у мережі: {count}\n💰 Заробляй крипту, ламай сервери, стань №1!")
     except Exception as e:
-        print(f"Помилка оновлення Bio: {e}")
+        pass
 
 def get_rank(lvl):
     if lvl >= 100: return "Кібер-Бог 👑"
@@ -32,7 +27,6 @@ def get_rank(lvl):
 @dp.message(Command("start"))
 async def cmd_start(m: types.Message):
     uid = m.from_user.id
-    # Реєстрація нового гравця
     if uid not in db:
         db[uid] = {
             "name": m.from_user.first_name, 
@@ -42,7 +36,7 @@ async def cmd_start(m: types.Message):
             "mining": False,
             "items": []
         }
-        await update_bot_bio() # Оновлюємо цифри у профілі бота
+        await update_bot_bio()
 
     await m.answer(
         f"🌐 **СИСТЕМА АКТИВОВАНА**\n"
@@ -73,7 +67,7 @@ async def cmd_mine(m: types.Message):
         p = (random.uniform(0.001, 0.003)) * user["lvl"]
         user["bal"] += p
         bar = "█" * (i + 1) + "░" * (3 - i)
-        await st.edit_text(f"⛏ **МАЙНІНГ АКТИВНИЙ**\n`[{bar}]` {33*(i+1)}%\n💎 Здобуто: `+{p:.5f} XMR`")
+        await st.edit_text(f"⛏ **МАЙНІНГ АКТИВНИЙ**\n`[{bar}]` {25*(i+1)}%\n💎 Здобуто: `+{p:.5f} XMR`")
         await asyncio.sleep(2)
         
     user["mining"] = False
@@ -87,7 +81,6 @@ async def cmd_hack(m: types.Message):
     msg = await m.answer("📡 **Обхід фаєрволу Пентагону...**")
     await asyncio.sleep(2.5)
     
-    # 50% шанс на успіх. Якщо є VPN, шанс вищий!
     chance = 0.7 if "VPN" in user["items"] else 0.5
     
     if random.random() < chance:
@@ -161,7 +154,6 @@ async def cmd_profile(m: types.Message):
 async def cmd_top(m: types.Message):
     if not db: return await m.answer("База порожня!")
     
-    # Сортуємо гравців за балансом
     sorted_users = sorted(db.values(), key=lambda x: x["bal"], reverse=True)[:5]
     text = "🏆 **ТОП-5 ХАКЕРІВ СЕРВЕРА:**\n━━━━━━━━━━━━━━\n"
     for i, u in enumerate(sorted_users, 1):
