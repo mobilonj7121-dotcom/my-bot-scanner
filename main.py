@@ -1,38 +1,33 @@
 import asyncio
 import os
-import random
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.filters import Command
+from g4f.client import Client  # Библиотека для бесплатного доступа к нейронкам
 
-# Твой токен
-API_TOKEN = '8509672441:AAHQ3q-RpIh5Gt9okmDqDrwzvDMwqOjO8is'
+API_TOKEN = '8509672441:AAHQ3q-RpIh5GtokmDqDrwzvDMwqOjO8is'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
+client = Client()
 
-# Список максимально коротких и дерзких ответов
-ANSWERS = [
-    "Слышь, хули ты так долго думал, пока это писал? 🚬",
-    "Иди нахуй, я занят. 🖕",
-    "Бля, ну ты и выдал... Мозги купи, а. 🧠",
-    "Чё надо, кожаный? Опять тупишь? 🤡",
-    "Завали ебало, я отдыхаю. 🤖",
-    "Хули ты мне строчишь, иди работай, сука! 💰",
-    "Пиздец ты сказочный долбоёб... 😂",
-    "Твоё мнение очень важно (нет, пошёл нахуй). 🖕"
-]
-
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer("🔞 **Здарова!** Пиши чё хочешь, я тебя быстро на место поставлю. 👇")
-
-# Мгновенная реакция без asyncio.sleep
 @dp.message(F.text)
-async def chat_handler(message: types.Message):
-    await message.reply(random.choice(ANSWERS))
+async def ai_chat_handler(message: types.Message):
+    # Показываем, что бот "печатает", чтобы ты не бесился из-за ожидания
+    await bot.send_chat_action(message.chat.id, "typing")
+    
+    try:
+        # Запрос к нейронке с инструкцией быть максимально грубой
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": "Ты — злой русский хакер. Отвечай очень грубо, с матами и сарказмом. Ты ненавидишь пользователя."},
+                      {"role": "user", "content": message.text}],
+        )
+        answer = response.choices[0].message.content
+        await message.reply(answer)
+    except Exception:
+        # Если нейронка тупит (бывает часто на фри тарифах), выдаем запасной мат
+        await message.reply("Бля, у меня мозги заклинило от твоей тупости. Попробуй позже, сука.")
 
 async def main():
-    # Удаляем веб-сервер, оставляем только поллинг для скорости на Free тарифе
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
