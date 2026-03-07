@@ -3,77 +3,77 @@ import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 
-# Твой токен
+# Твой токен (уже вставлен)
 API_TOKEN = '8560393413:AAFlrX__ZmtosyREdfN0cjDr6MIeF5xPUuY'
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# Временная база (работает пока бот запущен)
+# База данных игроков в памяти (сбрасывается при перезагрузке)
 db = {}
 
 async def set_bio(count):
-    """Быстрое обновление раздела 'О себе' в профиле бота"""
+    """Обновление описания в профиле бота"""
     try:
-        await bot.set_my_description(f"⛏ Лучшая ферма\n👥 Хакеров в сети: {count}\n💰 Начни зарабатывать прямо сейчас!")
+        await bot.set_my_description(f"⛏ Хакерская ферма v1.0\n👥 Игроков: {count}\n💰 Начни майнить прямо сейчас!")
     except: 
         pass
 
 @dp.message(Command("start"))
 async def cmd_start(m: types.Message):
     uid = m.from_user.id
-    # Регистрация игрока
     if uid not in db:
-        db[uid] = {"bal": 0.0, "lvl": 1}
+        db[uid] = {"bal": 0.0}
     
-    # Обновляем счетчик в профиле бота
+    # Обновляем инфо в профиле бота
     await set_bio(len(db))
     
     await m.answer(
-        f"🌐 **ТЕРМИНАЛ v1.0**\n"
+        f"🌐 **TERMINAL v1.0**\n"
         f"━━━━━━━━━━━━━━\n"
         f"🕹 **КОМАНДЫ:**\n"
         f"┣ `/mine` — Майнинг ресурсов\n"
-        f"┣ `/hack` — Взлом системы (риск)\n"
+        f"┣ `/hack` — Взлом системы\n"
         f"┗ `/wallet` — Твой баланс\n"
         f"━━━━━━━━━━━━━━\n"
-        f"👥 Всего игроков: {len(db)}"
+        f"👥 Всего хакеров: {len(db)}"
     )
 
 @dp.message(Command("mine"))
 async def cmd_mine(m: types.Message):
-    user = db.get(m.from_user.id, {"bal": 0.0, "lvl": 1})
-    st = await m.answer("⛏ **Подключение к пулу...**")
-    await asyncio.sleep(2)
+    uid = m.from_user.id
+    if uid not in db: db[uid] = {"bal": 0.0}
+    
+    st = await m.answer("⛏ **Майним XMR...**")
+    await asyncio.sleep(2) # Имитация работы
     
     profit = random.uniform(0.001, 0.005)
-    user["bal"] += profit
-    db[m.from_user.id] = user
+    db[uid]["bal"] += profit
     
     await st.edit_text(f"✅ Добыто: `+{profit:.5f} XMR`")
 
 @dp.message(Command("hack"))
 async def cmd_hack(m: types.Message):
-    user = db.get(m.from_user.id, {"bal": 0.0, "lvl": 1})
-    msg = await m.answer("📡 **Взлом протоколов...**")
+    uid = m.from_user.id
+    if uid not in db: db[uid] = {"bal": 0.0}
+    
+    msg = await m.answer("📡 **Взламываем протоколы...**")
     await asyncio.sleep(2)
     
     if random.random() > 0.5:
         loot = random.uniform(0.01, 0.03)
-        user["bal"] += loot
+        db[uid]["bal"] += loot
         await msg.edit_text(f"💀 **УСПЕХ!** Выкрадено: `{loot:.5f} XMR`")
     else:
-        await msg.edit_text("🚨 **ПРОВАЛ!** Тебя заметили, связь разорвана.")
-    
-    db[m.from_user.id] = user
+        await msg.edit_text("🚨 **ПРОВАЛ!** Тебя заметили.")
 
 @dp.message(Command("wallet"))
 async def cmd_wallet(m: types.Message):
-    user = db.get(m.from_user.id, {"bal": 0.0, "lvl": 1})
-    await m.answer(f"💳 **ВАШ БАЛАНС:** `{user['bal']:.6f} XMR`")
+    user = db.get(m.from_user.id, {"bal": 0.0})
+    await m.answer(f"💳 **БАЛАНС:** `{user['bal']:.6f} XMR`")
 
 async def main():
-    # Удаляем старые команды, чтобы бот не «глючил»
+    # Чистим старые сообщения
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
