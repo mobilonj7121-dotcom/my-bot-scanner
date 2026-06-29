@@ -8,7 +8,7 @@ from Scaner import fetch_data
 
 # Завантажуємо токен з прихованого файлу .env
 load_dotenv()
-API_TOKEN = os.getenv('8940378517:AAFEBzs27Y0lP5RPKWA327JhIAd3VsJ2rz4')
+API_TOKEN = os.getenv('API_TOKEN')
 
 # Налаштовуємо логування
 logging.basicConfig(level=logging.INFO)
