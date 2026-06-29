@@ -1,56 +1,50 @@
-import telebot
-from flask import Flask, request, render_template_string
-import requests
-import threading
 import os
+import logging
+from aiogram import Bot, Dispatcher, executor, types
+from dotenv import load_dotenv
 
-# --- ТВОЇ ДАНІ ---
-TOKEN = '8560393413:AAH2CsrzsKkL5sFSD0PC0rLn-6GRSKMOXbM'
-ADMIN_ID = 000000000 # Встав свій ID (дізнайся у @userinfobot)
+# Імпортуємо нашу функцію з файлу Scaner.py
+from Scaner import fetch_data 
 
-bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
+# Завантажуємо токен з прихованого файлу .env
+load_dotenv()
+API_TOKEN = os.getenv('8940378517:AAFEBzs27Y0lP5RPKWA327JhIAd3VsJ2rz4')
 
-# Стан системи: True - працює, False - вимкнено
-is_active = True
+# Налаштовуємо логування
+logging.basicConfig(level=logging.INFO)
 
-# Команда для ВИМКНЕННЯ
-@bot.message_handler(commands=['off'])
-def turn_off(message):
-    global is_active
-    if message.from_user.id == ADMIN_ID:
-        is_active = False
-        bot.reply_to(message, "❌ Система ВИМКНЕНА. Пастка більше не ловить дані.")
+# Ініціалізуємо бота
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
 
-# Команда для УВІМКНЕННЯ
-@bot.message_handler(commands=['on'])
-def turn_on(message):
-    global is_active
-    if message.from_user.id == ADMIN_ID:
-        is_active = True
-        bot.reply_to(message, "✅ Система УВІМКНЕНА. Полювання почалося!")
+@dp.message_handler(commands=['start', 'help'])
+async def send_welcome(message: types.Message):
+    text = (
+        "Привіт! 👋 Я твій Бот-Сканер.\n\n"
+        "Надішли мені команду у форматі:\n"
+        "`/scan [посилання]`\n\n"
+        "Приклад: `/scan https://google.com`"
+    )
+    await message.reply(text, parse_mode="Markdown")
 
-@app.route('/')
-def home():
-    if not is_active:
-        return "<h1>Server is under maintenance</h1>", 503
+@dp.message_handler(commands=['scan'])
+async def scan_website(message: types.Message):
+    # Отримуємо посилання, яке користувач написав після /scan
+    url = message.get_args()
     
-    # Якщо активна - ловимо дані
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr)
-    ua = request.headers.get('User-Agent')
+    if not url:
+        await message.reply("⚠️ Ти забув додати посилання! Напиши, наприклад: `/scan https://google.com`", parse_mode="Markdown")
+        return
     
-    # Відправляємо звіт тобі в Telegram
-    bot.send_message(ADMIN_ID, f"🎯 ЦІЛЬ ЗАФІКСОВАНА!\n🌐 IP: {ip}\n📱 Пристрій: {ua}")
+    await message.reply("🔍 Сканую сайт, зачекай секунду...")
     
-    return "<h1>Installing System Update... 15%</h1>"
+    # Викликаємо логіку з Scaner.py
+    result = fetch_data(url)
+    
+    # Відправляємо результат назад у Telegram
+    await message.reply(result)
 
-def run_bot():
-    bot.polling(none_stop=True)
-
-if __name__ == "__main__":
-    # Запускаємо бота в окремому потоці
-    threading.Thread(target=run_bot).start()
-    # Запускаємо веб-сервер
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == '__main__':
+    print("Бот запущений і готовий до роботи!")
+    executor.start_polling(dp, skip_updates=True)
     
